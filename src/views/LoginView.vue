@@ -29,20 +29,13 @@
           <!-- Usuário -->
           <div class="input-group">
             <div class="input-icon">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M12 12C14.2091 12 16 10.2091 16 8C16 5.79086 14.2091 4 12 4C9.79086 4 8 5.79086 8 8C8 10.2091 9.79086 12 12 12Z"
-                  fill="currentColor"
-                />
-
-                <path
-                  d="M4 20C4 16.6863 7.58172 14 12 14C16.4183 14 20 16.6863 20 20"
-                  fill="currentColor"
-                />
+              <svg  xmlns="http://www.w3.org/2000/svg" width="24" height="24"  
+                fill="currentColor" viewBox="0 0 24 24" >
+                <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2m-8.61 10.79c.18.14.4.21.61.21s.43-.07.61-.21l1.55-1.21L18.58 18H5.41l4.42-4.42 1.55 1.21ZM20 6v.51l-8 6.22-8-6.22V6zm0 3.04v7.54l-4.24-4.24zm-11.76 3.3L4 16.58V9.04zM20 18"></path>
               </svg>
             </div>
 
-            <input v-model="username" type="text" placeholder="Usuário" autocomplete="username" />
+            <input v-model="email" type="text" placeholder="E-mail" autocomplete="email" />
           </div>
 
           <!-- Senha -->
@@ -135,12 +128,12 @@
 <script setup>
 import { ref } from 'vue'
 
-const username = ref('')
+const email = ref('')
 const password = ref('')
 const showPassword = ref(false)
 
 const handleLogin = () => {
-  console.log('Usuário:', username.value)
+  console.log('Email:', email.value)
   console.log('Senha:', password.value)
 
   // Futuramente:
@@ -153,6 +146,7 @@ const handleForgotPassword = () => {
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
 /* ========================================= */
 /* PÁGINA */
 /* ========================================= */
@@ -201,7 +195,6 @@ const handleForgotPassword = () => {
 
 .login-section {
   width: 45%;
-  min-height: 100vh;
 
   display: flex;
   justify-content: center;
@@ -259,8 +252,9 @@ const handleForgotPassword = () => {
 
   color: #152238;
 
-  font-size: 31px;
+  font-size: 40px;
   font-weight: 700;
+  font-family: 'Roboto', sans-serif;
 
   letter-spacing: -0.8px;
 }
@@ -269,6 +263,8 @@ const handleForgotPassword = () => {
   margin: 0;
 
   color: #718096;
+
+  font-family: 'Roboto', sans-serif;
 
   font-size: 16px;
 }
