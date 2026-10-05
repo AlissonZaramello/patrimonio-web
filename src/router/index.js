@@ -7,16 +7,12 @@ import PatrimonioConsultaView from '../views/PatrimonioConsultaView.vue'
 import InventarioNfcView from '../views/InventarioNfcView.vue'
 import RelatoriosView from '../views/RelatoriosView.vue'
 import UsuariosView from '../views/UsuariosView.vue'
+import AppLayout from '@/components/layout/AppLayout.vue'
 
 const router = createRouter({
   history: createWebHistory(),
 
-  routes: [
-    {
-      path: '/',
-      redirect: '/login',
-    },
-
+  routes: [   
     {
       path: '/login',
       name: 'login',
@@ -24,40 +20,43 @@ const router = createRouter({
     },
 
     {
-      path: '/dashboard',
-      name: 'dashboard',
-      component: DashboardView,
-    },
+      path: '/',
+      component: AppLayout,
 
-    {
-      path: '/patrimonios/cadastro',
-      name: 'patrimonio-cadastro',
-      component: PatrimonioCadastroView,
-    },
+      children: [
+        
+        {
+          path: 'dashboard',
+          component: DashboardView
+        },
 
-    {
-      path: '/patrimonios/consulta',
-      name: 'patrimonio-consulta',
-      component: PatrimonioConsultaView,
-    },
+        {
+          path: 'patrimonios/cadastro',
+          component: PatrimonioCadastroView
+        },
 
-    {
-      path: '/inventario/nfc',
-      name: 'inventario-nfc',
-      component: InventarioNfcView,
-    },
+        {
+          path: 'patrimonios/consulta',
+          component: PatrimonioConsultaView
+        },
 
-    {
-      path: '/relatorios',
-      name: 'relatorios',
-      component: RelatoriosView,
-    },
+        {
+          path: 'inventario/nfc',
+          component: InventarioNfcView
+        },
 
-    {
-      path: '/usuarios',
-      name: 'usuarios',
-      component: UsuariosView,
-    },
+        {
+          path: 'relatorios',
+          component: RelatoriosView
+        },
+
+        {
+          path: 'usuarios',
+          component: UsuariosView
+        }
+
+      ]
+    }
   ],
 })
 
