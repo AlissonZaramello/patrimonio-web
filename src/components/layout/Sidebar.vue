@@ -6,7 +6,7 @@
 
       <nav class="sidebar-nav">
         <!-- Item ativo -->
-        <RouterLink to="/dashboard" class="nav-item active">
+        <RouterLink to="/dashboard" class="nav-item">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
 
@@ -16,7 +16,7 @@
           <span>Dashboard</span>
         </RouterLink>
 
-        <RouterLink to="/patrimonios/consulta" class="nav-item">
+        <RouterLink to="/patrimonios" class="nav-item">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
 
@@ -85,7 +85,7 @@
 
   padding: 20px 14px;
 
-  background: #0f2a4d;
+  background: #152436;
 
   color: #ffffff;
 
@@ -105,7 +105,7 @@
 }
 
 .sidebar-logo img {
-  width: 170px;
+  width: 200px;
 }
 
 .sidebar-nav {
@@ -141,9 +141,8 @@
   color: #ffffff;
 }
 
-.nav-item.active {
-  background: #2563eb;
-
+.nav-item.router-link-active {
+  background: #094794;
   color: #ffffff;
 }
 

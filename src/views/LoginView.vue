@@ -127,17 +127,33 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+
+const router = useRouter()
+const authStore = useAuthStore()
 
 const email = ref('')
 const password = ref('')
 const showPassword = ref(false)
 
-const handleLogin = () => {
-  console.log('Email:', email.value)
-  console.log('Senha:', password.value)
+const handleLogin = async () => {
+  try {
+    const response = await fetch('http://localhost:8080/api/auth/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ email: email.value, senha: password.value }),
+    })
 
-  // Futuramente:
-  // chamada para a API Java
+    if (!response.ok) throw new Error('Credenciais Inválidas')
+
+    const data = await response.json()
+    authStore.login(data)
+    router.push('/dashboard')
+  } catch (erro){
+    console.error('Erro real no login:', erro)
+    alert('E-mail ou senha inválidos')
+  }
 }
 
 const handleForgotPassword = () => {

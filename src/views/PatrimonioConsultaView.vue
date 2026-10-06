@@ -4,29 +4,6 @@
     <!-- CONTEÚDO -->
     <!-- ================================= -->
     <main class="consulta-content">
-      <!-- Cabeçalho -->
-      <header class="consulta-header">
-        <div class="header-title">
-          <h1>Consulta de Patrimônios</h1>
-
-          <p>Pesquisa e gerenciamento de bens patrimoniais cadastrados</p>
-        </div>
-
-        <div class="header-actions">
-          <RouterLink to="/patrimonios/cadastro" class="btn btn-primary">＋ Novo Patrimônio</RouterLink>
-        </div>
-
-        <div class="user-info">
-          <div class="user-avatar"></div>
-
-          <div class="user-details">
-            <strong>Administrador</strong>
-
-            <small>admin@sicpat-rfid</small>
-          </div>
-        </div>
-      </header>
-
       <!-- Breadcrumb -->
       <nav class="breadcrumb">
         <RouterLink to="/dashboard">Dashboard</RouterLink>
@@ -394,83 +371,7 @@ function limparFiltros() {
 
   gap: 20px;
 
-  background: #f1f5f9;
-}
-
-/* ========================================= */
-/* CABEÇALHO */
-/* ========================================= */.consulta-header {
-  display: flex;
-
-  justify-content: space-between;
-
-  align-items: center;
-
-  gap: 16px;
-}
-
-.header-actions {
-  display: flex;
-
-  gap: 10px;
-
-  margin-left: auto;
-}
-
-.header-actions .btn {
-  text-decoration: none;
-}
-
-.header-title h1 {
-  margin: 0;
-
-  color: #152238;
-
-  font-size: 28px;
-  font-weight: 700;
-}
-
-.header-title p {
-  margin: 4px 0 0;
-
-  color: #718096;
-
-  font-size: 14px;
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-
-  gap: 10px;
-}
-
-.user-avatar {
-  width: 40px;
-  height: 40px;
-
-  border-radius: 50%;
-
-  background: #d8e4f5;
-}
-
-.user-details {
-  display: flex;
-  flex-direction: column;
-
-  line-height: 1.3;
-}
-
-.user-details strong {
-  color: #152238;
-
-  font-size: 14px;
-}
-
-.user-details small {
-  color: #718096;
-
-  font-size: 12px;
+  background: #dcdfe4;
 }
 
 /* ========================================= */

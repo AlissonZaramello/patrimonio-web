@@ -4,25 +4,6 @@
     <!-- CONTEÚDO -->
     <!-- ================================= -->
     <main class="cadastro-content">
-      <!-- Cabeçalho -->
-      <header class="cadastro-header">
-        <div class="header-title">
-          <h1>{{ ehEdicao ? 'Editar Patrimônio' : 'Cadastro de Patrimônio' }}</h1>
-
-          <p>Registro e gerenciamento de bens patrimoniais</p>
-        </div>
-
-        <div class="user-info">
-          <div class="user-avatar"></div>
-
-          <div class="user-details">
-            <strong>Administrador</strong>
-
-            <small>admin@sicpat-rfid</small>
-          </div>
-        </div>
-      </header>
-
       <!-- Breadcrumb -->
       <nav class="breadcrumb">
         <RouterLink to="/dashboard">Dashboard</RouterLink>
@@ -191,7 +172,7 @@
               {{ salvando ? '⏳ Salvando...' : '💾 Salvar' }}
             </button>
 
-            <button type="button" class="btn btn-secondary" @click="router.push('/dashboard')">
+            <button type="button" class="btn btn-secondary" @click="router.push('/patrimonios')">
               Cancelar
             </button>
 
@@ -484,7 +465,7 @@ function salvar() {
       alert(`Patrimônio "${dados.descricao}" cadastrado com sucesso!`)
     }
 
-    router.push('/patrimonios/consulta')
+    router.push('/patrimonios')
   }, 400)
 }
 </script>
@@ -522,69 +503,7 @@ function salvar() {
 
   gap: 20px;
 
-  background: #f1f5f9;
-}
-
-/* ========================================= */
-/* CABEÇALHO */
-/* ========================================= */
-
-.cadastro-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.header-title h1 {
-  margin: 0;
-
-  color: #152238;
-
-  font-size: 28px;
-  font-weight: 700;
-}
-
-.header-title p {
-  margin: 4px 0 0;
-
-  color: #718096;
-
-  font-size: 14px;
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-
-  gap: 10px;
-}
-
-.user-avatar {
-  width: 40px;
-  height: 40px;
-
-  border-radius: 50%;
-
-  background: #d8e4f5;
-}
-
-.user-details {
-  display: flex;
-  flex-direction: column;
-
-  line-height: 1.3;
-}
-
-.user-details strong {
-  color: #152238;
-
-  font-size: 14px;
-}
-
-.user-details small {
-  color: #718096;
-
-  font-size: 12px;
+  background: #dcdfe4;
 }
 
 /* ========================================= */

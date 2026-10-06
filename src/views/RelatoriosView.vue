@@ -4,25 +4,6 @@
     <!-- CONTEÚDO -->
     <!-- ================================= -->
     <main class="relatorios-content">
-      <!-- Cabeçalho -->
-      <header class="relatorios-header">
-        <div class="header-title">
-          <h1>Relatórios Patrimoniais</h1>
-
-          <p>Análise e acompanhamento dos bens patrimoniais da instituição</p>
-        </div>
-
-        <div class="user-info">
-          <div class="user-avatar"></div>
-
-          <div class="user-details">
-            <strong>Administrador</strong>
-
-            <small>admin@sicpat-rfid</small>
-          </div>
-        </div>
-      </header>
-
       <!-- Breadcrumb -->
       <nav class="breadcrumb">
         <RouterLink to="/dashboard">Dashboard</RouterLink>
@@ -372,11 +353,8 @@ function exportar(tipo) {
 /* ========================================= */
 
 .relatorios-page {
-  display: flex;  width: 100%;
-
-  height: 100vh;
-
-  overflow: hidden;
+  display: flex;  
+  width: 100%;
 }
 
 /* ========================================= */
@@ -384,82 +362,13 @@ function exportar(tipo) {
 /* ========================================= */
 
 .relatorios-content {
-  flex: 1;
-
-  height: 100vh;
-
+  width: 100%;
   padding: 28px 32px;
-
-  overflow-y: auto;
-
   display: flex;
   flex-direction: column;
-
   gap: 20px;
-
-  background: #f1f5f9;
-}
-
-/* ========================================= */
-/* CABEÇALHO */
-/* ========================================= */
-
-.relatorios-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.header-title h1 {
-  margin: 0;
-
-  color: #152238;
-
-  font-size: 28px;
-  font-weight: 700;
-}
-
-.header-title p {
-  margin: 4px 0 0;
-
-  color: #718096;
-
-  font-size: 14px;
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-
-  gap: 10px;
-}
-
-.user-avatar {
-  width: 40px;
-  height: 40px;
-
-  border-radius: 50%;
-
-  background: #d8e4f5;
-}
-
-.user-details {
-  display: flex;
-  flex-direction: column;
-
-  line-height: 1.3;
-}
-
-.user-details strong {
-  color: #152238;
-
-  font-size: 14px;
-}
-
-.user-details small {
-  color: #718096;
-
-  font-size: 12px;
+  background: #dcdfe4;
+  box-sizing: border-box;
 }
 
 /* ========================================= */
