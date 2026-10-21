@@ -26,6 +26,20 @@
 
         <!-- Formulário -->
         <form @submit.prevent="handleLogin">
+          <Transition name="error">
+            <div v-if="loginError" class="login-error" role="alert" aria-live="polite">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
+                <path d="M12 8V12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <circle cx="12" cy="16" r="1" fill="currentColor" />
+              </svg>
+
+              <div>
+                <strong>Não foi possível entrar</strong>
+                <p>{{ loginError }}</p>
+              </div>
+            </div>
+          </Transition>
           <!-- Usuário -->
           <div class="input-group">
             <div class="input-icon">
@@ -136,8 +150,14 @@ const authStore = useAuthStore()
 const email = ref('')
 const password = ref('')
 const showPassword = ref(false)
+const loginError = ref('')
+const isLogginIn = ref(false)
+
 
 const handleLogin = async () => {
+  loginError.value = ''
+  isLogginIn.value = true
+
   try {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
       method: 'POST',
@@ -145,19 +165,29 @@ const handleLogin = async () => {
       body: JSON.stringify({ email: email.value, senha: password.value }),
     })
 
-    if (!response.ok) throw new Error('Credenciais Inválidas')
+    if (response.status === 401 || response.status === 403) {
+      loginError.value = 'E-mail ou senha inválidos. Verifique suas credenciais e tente novamente.'
+      return
+    }
+
+    if(!response.ok) {
+      loginError.value = 'Não foi possível realizar o login. Tente novamente em instantes.'
+      return
+    }
 
     const data = await response.json()
     authStore.login(data)
     router.push('/dashboard')
   } catch (erro){
     console.error('Erro real no login:', erro)
-    alert('E-mail ou senha inválidos')
+    loginError.value = 'Não foi possível conectar ao sistema. Verifique sua conexão e tente novamente.'
+  } finally {
+    isLogginIn.value = false
   }
 }
 
 const handleForgotPassword = () => {
-  console.log('Recuperação de senha')
+  router.push('/esqueci-senha')
 }
 </script>
 
@@ -444,6 +474,58 @@ const handleForgotPassword = () => {
 }
 
 /* ========================================= */
+/* ERRO DE LOGIN */
+/* ========================================= */
+
+.login-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+
+  margin-bottom: 20px;
+  padding: 14px 16px;
+
+  color: #b42318;
+  background: #fef3f2;
+
+  border: 1px solid #fecdca;
+  border-radius: 12px;
+
+  font-family: 'Roboto', sans-serif;
+}
+
+.login-error svg {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.login-error strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.login-error p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.error-enter-active,
+.error-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.error-enter-from,
+.error-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+/* ========================================= */
 /* RESPONSIVIDADE */
 /* ========================================= */
 
@@ -494,4 +576,6 @@ const handleForgotPassword = () => {
     padding: 38px 25px;
   }
 }
+
+
 </style>

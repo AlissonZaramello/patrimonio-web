@@ -8,6 +8,8 @@ import InventarioNfcView from '../views/InventarioNfcView.vue'
 import RelatoriosView from '../views/RelatoriosView.vue'
 import UsuariosView from '../views/UsuariosView.vue'
 import AppLayout from '@/components/layout/AppLayout.vue'
+import EsqueciSenhaView from '@/views/EsqueciSenhaView.vue'
+import ResetarSenhaView from '@/views/ResetarSenhaView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -17,6 +19,24 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: LoginView,
+    },
+
+    {
+      path: '/esqueci-senha',
+      name: 'esqueci-senha',
+      component: EsqueciSenhaView,
+      meta: {
+        requiresAuth: false,
+      },
+    },
+
+    {
+      path: '/resetar-senha',
+      name: 'resetar-senha',
+      component: ResetarSenhaView,
+      meta: {
+        requiresAuth: false,
+      },
     },
 
     {
@@ -101,12 +121,19 @@ const router = createRouter({
 router.beforeEach((to) => {
   const estaLogado = !!localStorage.getItem('token')
 
-  // Tentando acessar qualquer rota que não seja /login sem token -> manda pro login
-  if (to.name !== 'login' && !estaLogado) {
+  const rotasPublicas = [
+    'login',
+    'esqueci-senha',
+    'resetar-senha',
+  ]
+
+  // Usuário sem autenticação só pode acessar rotas públicas.
+  if (!estaLogado && !rotasPublicas.includes(to.name)) {
     return { name: 'login' }
   }
 
-  // Já está logado e tentando acessar /login -> manda direto pro dashboard
+  // Usuário autenticado que tenta acessar o login
+  // é redirecionado para o dashboard.
   if (to.name === 'login' && estaLogado) {
     return { name: 'dashboard' }
   }
