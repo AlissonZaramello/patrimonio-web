@@ -4,12 +4,13 @@ import LoginView from '../views/LoginView.vue'
 import DashboardView from '../views/DashboardView.vue'
 import PatrimonioCadastroView from '../views/PatrimonioCadastroView.vue'
 import PatrimonioConsultaView from '../views/PatrimonioConsultaView.vue'
-import InventarioNfcView from '../views/InventarioNfcView.vue'
 import RelatoriosView from '../views/RelatoriosView.vue'
 import UsuariosView from '../views/UsuariosView.vue'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import EsqueciSenhaView from '@/views/EsqueciSenhaView.vue'
 import ResetarSenhaView from '@/views/ResetarSenhaView.vue'
+import ConferenciasView from '@/views/ConferenciasView.vue'
+import CiclosView from '@/views/CiclosView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -81,11 +82,11 @@ const router = createRouter({
         },
 
         {
-          path: 'inventario/nfc',
-          component: InventarioNfcView,
+          path: 'conferencias',
+          component: ConferenciasView,
           meta: {
-            title: 'Inventário Patrimonial NFC',
-            description: 'Leitura e conferência automatizada de patrimônios utilizando RFID e NFC'
+            title: 'Conferências Patrimoniais',
+            description: 'Acompanhamento das conferências por sala'
           }
         },
 
@@ -96,6 +97,16 @@ const router = createRouter({
             title: 'Relatórios Patrimoniais',
             description: 'Análise e acompanhamento dos bens patrimoniais da instituição'
           }
+        },
+
+        {
+          path: 'ciclos-conferencia',
+          component: CiclosView,
+          meta: {
+            title: 'Ciclos de Conferência',
+            description: 'Gerenciamento dos ciclos patrimoniais',
+            requiresAdmin: true,
+          },
         },
 
         {
@@ -136,6 +147,20 @@ router.beforeEach((to) => {
   // é redirecionado para o dashboard.
   if (to.name === 'login' && estaLogado) {
     return { name: 'dashboard' }
+  }
+
+  // Verifica se a rota exige permissão de administrador.
+  const requerAdministrador = to.matched.some(rota => rota.meta.requiresAdmin === true)
+
+  if (estaLogado && requerAdministrador) {
+    const usuario = JSON.parse(localStorage.getItem('usuario') || 'null')
+
+    const ehAdministrador = ['admin', 'administrador'].includes(usuario?.role?.toLowerCase())
+
+    // Funcionários não podem acessar rotas administrativas.
+    if (!ehAdministrador) {
+      return { name: 'dashboard' }
+    }
   }
 })
 

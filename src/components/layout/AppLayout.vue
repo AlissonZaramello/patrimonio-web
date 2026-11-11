@@ -39,5 +39,6 @@ import { RouterView } from 'vue-router'
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  background: #dcdfe4;
 }
 </style>

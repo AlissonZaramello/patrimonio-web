@@ -28,14 +28,23 @@
           <span>Patrimônios</span>
         </RouterLink>
 
-        <RouterLink to="/inventario/nfc" class="nav-item">
+        <RouterLink v-if="ehAdministrador" to="/ciclos-conferencia" class="nav-item">
+          <svg  xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24" >
+          
+          <path d="M16 5H7c-1.1 0-2 .9-2 2v5h2V7h9v3l5-4-5-4zm1 12H8v-3l-5 4 5 4v-3h9c1.1 0 2-.9 2-2v-5h-2z"></path>
+          </svg>
+
+          <span>Ciclos de Conferências</span>
+        </RouterLink>
+
+        <RouterLink to="/conferencias" class="nav-item">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M9 11l3 3L22 4" />
 
             <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
           </svg>
 
-          <span>Inventário</span>
+          <span>Conferências</span>
         </RouterLink>
 
         <RouterLink to="/relatorios" class="nav-item">
@@ -72,6 +81,16 @@
       </div>
     </aside>
 </template>
+
+<script setup>
+  import { computed } from 'vue'
+  import { useAuthStore } from '@/stores/auth'
+
+  const authStore = useAuthStore()
+
+  const ehAdministrador = computed(() => ['admin', 'administrador'].includes(authStore.usuario?.role?.toLowerCase()))
+
+</script>
 
 <style>
 
