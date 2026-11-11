@@ -10,7 +10,7 @@
 
         <span class="breadcrumb-separator">›</span>
 
-        <span>Patrimônios</span>
+        <RouterLink to="/patrimonios">Patrimônios</RouterLink>
 
         <span class="breadcrumb-separator">›</span>
 
@@ -33,22 +33,22 @@
           </div>
 
           <div class="filtro-field">
-            <label for="filtroSetor">Setor</label>
-
-            <select id="filtroSetor" v-model="filtros.setor">
-              <option value="">Selecione o setor</option>
-
-              <option v-for="setor in setores" :key="setor">{{ setor }}</option>
+            <label for="filtroBloco">Bloco</label>
+            <select id="filtroBloco" v-model="filtros.bloco">
+              <option value="">Todos os blocos</option>
+              <option v-for="bloco in blocos" :key="bloco" :value="bloco">
+                {{ bloco }}
+              </option>
             </select>
           </div>
 
           <div class="filtro-field">
-            <label for="filtroCategoria">Categoria</label>
-
-            <select id="filtroCategoria" v-model="filtros.categoria">
-              <option value="">Selecione a categoria</option>
-
-              <option v-for="categoria in categorias" :key="categoria">{{ categoria }}</option>
+            <label for="filtroSala">Sala</label>
+            <select id="filtroSala" v-model="filtros.sala">
+              <option value="">Todas as salas</option>
+              <option v-for="sala in salas" :key="sala" :value="sala">
+                {{ sala }}
+              </option>
             </select>
           </div>
 
@@ -78,33 +78,33 @@
           <div class="stat-data">
             <span class="stat-title">Ativos</span>
 
-            <strong class="stat-value green">1.132</strong>
+            <strong class="stat-value green">{{ totalAtivos }}</strong>
 
             <small>Patrimônios ativos</small>
           </div>
         </div>
 
         <div class="stat-card">
-          <span class="stat-icon cyan">📋</span>
+          <span class="stat-icon cyan">❌</span>
 
           <div class="stat-data">
-            <span class="stat-title">Em Inventário</span>
+            <span class="stat-title">Inativos</span>
 
-            <strong class="stat-value cyan">87</strong>
+            <strong class="stat-value cyan">{{ totalInativos }}</strong>
 
-            <small>Aguardando conferência</small>
+            <small>Patrimônios inativos</small>
           </div>
         </div>
 
         <div class="stat-card">
-          <span class="stat-icon orange">🔧</span>
+          <span class="stat-icon orange">🛜</span>
 
           <div class="stat-data">
-            <span class="stat-title">Em Manutenção</span>
+            <span class="stat-title">Patrimônios com Tag</span>
 
-            <strong class="stat-value orange">26</strong>
+            <strong class="stat-value orange">{{ totalComTag }}</strong>
 
-            <small>Em manutenção preventiva</small>
+            <small>Com tags NFC vinculada</small>
           </div>
         </div>
       </section>
@@ -119,46 +119,35 @@
             <thead>
               <tr>
                 <th>Tombo</th>
-
                 <th>Descrição</th>
-
-                <th>Setor</th>
-
-                <th>Status</th>
-
+                <th>Bloco</th>
+                <th>Sala</th>
+                <th>Situação</th>
                 <th>Ações</th>
               </tr>
             </thead>
 
             <tbody>
-              <tr
-                v-for="item in resultadosFiltrados"
-                :key="item.tombo"
-                :class="{ 'row-selected': item.tombo === selecionado.tombo }"
-                @click="selecionar(item)"
-              >
-                <td class="cell-tombo">{{ item.tombo }}</td>
+              <tr v-for="item in resultadosFiltrados":key="item.id":class="{ 'row-selected': item.id === selecionado?.id }" @click="selecionar(item)">
 
-                <td>{{ item.descricao }}</td>
-
-                <td>{{ item.setor }}</td>
-
-                <td><span class="status-badge" :class="statusClass(item.status)">{{ item.status }}</span></td>
+                <td class="cell-tombo">{{ item.numeroTombo }}</td>
+                <td>{{ item.descricao || 'Sem descrição' }}</td>
+                <td>{{ item.nomeBloco }}</td>
+                <td>{{ item.nomeSala }}</td>
 
                 <td>
-                  <div class="acoes">
-                    <button type="button" class="acao-btn" title="Visualizar" @click.stop="selecionar(item)">👁</button>
+                  <span class="status-badge" :class="statusClass(item.ativo)"> {{ formatarStatus(item.ativo) }} </span>
+                </td>
 
-                    <RouterLink class="acao-btn" title="Editar" :to="`/patrimonios/cadastro?tombo=${item.tombo}`">✏️</RouterLink>
-
-                    <button type="button" class="acao-btn" title="Histórico" @click.stop="selecionar(item)">🕐</button>
-                  </div>
+                <td>
+                  <button type="button" class="acao-btn" title="Visualizar" @click.stop="selecionar(item)" > 👁 </button>
                 </td>
               </tr>
 
-              <tr v-if="resultadosFiltrados.length === 0">
-                <td colspan="5" class="vazio">Nenhum patrimônio encontrado com os filtros informados.</td>
+              <tr v-if="!carregando && resultadosFiltrados.length === 0">
+                <td colspan="6" class="vazio"> Nenhum patrimônio encontrado. </td>
               </tr>
+
             </tbody>
           </table>
 
@@ -166,21 +155,7 @@
           <div class="paginacao">
             <span class="paginacao-info">Mostrando {{ resultadosFiltrados.length }} de {{ totalPatrimonios }} registros</span>
 
-            <div class="paginacao-numeros">
-              <button type="button" class="pag-btn">‹</button>
-
-              <button type="button" class="pag-btn active">1</button>
-
-              <button type="button" class="pag-btn">2</button>
-
-              <button type="button" class="pag-btn">3</button>
-
-              <span class="pag-ellipsis">…</span>
-
-              <button type="button" class="pag-btn">208</button>
-
-              <button type="button" class="pag-btn">›</button>
-            </div>
+            <p class="paginacao-info"> Mostrando {{ resultadosFiltrados.length }} de {{ totalPatrimonios }} patrimônios </p>
 
             <select class="pag-por-pagina">
               <option>6 por página</option>
@@ -193,7 +168,7 @@
         </section>
 
         <!-- Painel de detalhes -->
-        <aside class="detalhes-card">
+        <aside v-if="selecionado" class="detalhes-card">
           <h2 class="section-title">Detalhes do Patrimônio</h2>
 
           <div class="detalhes-preview">
@@ -202,140 +177,167 @@
             <div class="detalhes-tombo">
               <span class="detalhes-label">Tombo</span>
 
-              <strong>{{ selecionado.tombo }}</strong>
+              <strong>{{ selecionado.numeroTombo }}</strong>
 
-              <span class="status-badge" :class="statusClass(selecionado.status)">{{ selecionado.status }}</span>
+              <span class="status-badge" :class="statusClass(selecionado.status)">{{ formatarStatus(selecionado.ativo) }}</span>
             </div>
           </div>
 
           <ul class="detalhes-lista">
             <li>
-              <span class="detalhes-label">Categoria</span>
+              <span class="detalhes-label">Estado de conservação</span>
 
-              <strong>{{ selecionado.categoria }}</strong>
+              <strong>{{ selecionado.estadoConservacao }}</strong>
             </li>
 
             <li>
               <span class="detalhes-label">Localização</span>
 
-              <strong>{{ selecionado.localizacao }}</strong>
+              <strong>{{ selecionado.nomeSala }}</strong>
             </li>
 
             <li>
-              <span class="detalhes-label">Setor Responsável</span>
+              <span class="detalhes-label">Bloco</span>
 
-              <strong>{{ selecionado.setor }}</strong>
+              <strong>{{ selecionado.nomeBloco }}</strong>
             </li>
 
             <li>
               <span class="detalhes-label">Data de Aquisição</span>
 
-              <strong>{{ selecionado.dataAquisicao }}</strong>
+              <strong>{{ formatarData(selecionado.dataAquisicao) }}</strong>
             </li>
           </ul>
 
           <div class="detalhes-rfid">
             <span class="detalhes-rfid-titulo">✅ RFID Vinculado</span>
 
-            <strong>{{ selecionado.tagRfid }}</strong>
+            <strong>{{ selecionado.tagNfcId || 'Sem tag vinculada' }}</strong>
           </div>
-
-          <button type="button" class="btn btn-outline btn-block">🕐 Ver Histórico Completo</button>
         </aside>
       </div>
     </main>
   </div>
 </template>
 
+
 <script setup>
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive, ref, onMounted } from 'vue'
+import { patrimonioService } from '@/services/patrimonioService'
 
-import { usePatrimoniosStore } from '@/stores/patrimonios'
-
-const patrimoniosStore = usePatrimoniosStore()
-
-const setores = [
-  'Administração',
-  'Biblioteca',
-  'Laboratório de Redes',
-  'Sala de Aula 04',
-  'Tecnologia da Informação',
-  'TI',
-]
-
-const categorias = [
-  'Equipamento de Informática',
-  'Mobiliário',
-  'Equipamento de Laboratório',
-  'Eletrônico',
-]
+const patrimonios = ref([])
+const selecionado = ref(null)
+const carregando = ref(false)
+const erroConsulta = ref('')
 
 const filtros = reactive({
   tombo: '',
-
-  setor: '',
-
-  categoria: '',
+  sala: '',
+  bloco: '',
 })
 
-// Protótipo: usa os dados do store Pinia (compartilhado com o Cadastro).
-// Futuramente: chamada para a API Java.
-const patrimonios = computed(() => patrimoniosStore.patrimonios)
+const salas = computed(() =>
+  [...new Set(patrimonios.value.map(p => p.nomeSala).filter(Boolean))].sort()
+)
 
-const selecionado = ref({ ...patrimonios.value[0] })
+const blocos = computed(() =>
+  [...new Set(patrimonios.value.map(p => p.nomeBloco).filter(Boolean))].sort()
+)
 
-// Protótipo: filtros aplicados em tempo real sobre os dados do store
 const resultadosFiltrados = computed(() => {
-  const termo = filtros.tombo.trim().toLowerCase()
+  const tombo = filtros.tombo.trim().toLowerCase()
 
-  return patrimonios.value.filter((item) => {
-    const correspondeTombo = !termo || item.tombo.toLowerCase().includes(termo)
-
-    const correspondeSetor = !filtros.setor || item.setor === filtros.setor
-
-    const correspondeCategoria = !filtros.categoria || item.categoria === filtros.categoria
-
-    return correspondeTombo && correspondeSetor && correspondeCategoria
-  })
+  return patrimonios.value.filter(item =>
+    (!tombo || item.numeroTombo?.toLowerCase().includes(tombo)) &&
+    (!filtros.sala || item.nomeSala === filtros.sala) &&
+    (!filtros.bloco || item.nomeBloco === filtros.bloco)
+  )
 })
 
 const totalPatrimonios = computed(() => patrimonios.value.length)
 
-function selecionar(item) {
-  selecionado.value = { ...item }
+const totalAtivos = computed(() =>
+  patrimonios.value.filter(p => p.ativo === true).length
+)
+
+const totalInativos = computed(() =>
+  patrimonios.value.filter(p => p.ativo === false).length
+)
+
+const totalComTag = computed(() =>
+  patrimonios.value.filter(p => p.tagNfcId != null).length
+)
+
+async function carregarPatrimonios() {
+  carregando.value = true
+  erroConsulta.value = ''
+
+  try {
+    const dados = await patrimonioService.listar()
+
+    if (!Array.isArray(dados)) {
+      throw new Error('Resposta inválida da API.')
+    }
+
+    patrimonios.value = dados
+    selecionado.value = dados[0] ?? null
+  } catch (erro) {
+    patrimonios.value = []
+    selecionado.value = null
+    erroConsulta.value = erro.message
+  } finally {
+    carregando.value = false
+  }
 }
 
-function statusClass(status) {
-  const mapa = {
-    Ativo: 'green',
-    'Em Uso': 'blue',
-    'Em Inventário': 'blue',
-    'Em Manutenção': 'orange',
-    'Não Localizado': 'red',
-  }
-
-  return `badge-${mapa[status] || 'gray'}`
+function selecionar(item) {
+  selecionado.value = item
 }
 
 function pesquisar() {
-  // Protótipo: o filtro do tombo já é aplicado em tempo real (computed).
-  // Futuramente: chamada para a API Java.
-  const termo = filtros.tombo.trim()
-
-  if (termo) {
-    const encontrado = patrimonios.value.find((p) => p.tombo.includes(termo))
-
-    if (encontrado) selecionar(encontrado)
-  }
+  selecionado.value = resultadosFiltrados.value[0] ?? null
 }
 
 function limparFiltros() {
   filtros.tombo = ''
-
-  filtros.setor = ''
-
-  filtros.categoria = ''
+  filtros.sala = ''
+  filtros.bloco = ''
+  selecionado.value = patrimonios.value[0] ?? null
 }
+
+function statusClass(ativo) {
+  return ativo === true
+    ? 'badge-green'
+    : ativo === false
+      ? 'badge-red'
+      : 'badge-gray'
+}
+
+function formatarStatus(ativo) {
+  return ativo === true
+    ? 'Ativo'
+    : ativo === false
+      ? 'Inativo'
+      : 'Não informado'
+}
+
+function formatarData(data) {
+  if (!data) return 'Não informado'
+
+  const [ano, mes, dia] = data.split('-')
+  return `${dia}/${mes}/${ano}`
+}
+
+function formatarValor(valor) {
+  if (valor == null) return 'Não informado'
+
+  return Number(valor).toLocaleString('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  })
+}
+
+onMounted(carregarPatrimonios)
 </script>
 
 <style scoped>
@@ -345,11 +347,7 @@ function limparFiltros() {
 
 .consulta-page {
   display: flex;
-
   width: 100%;
-
-  height: 100vh;
-
   overflow: hidden;
 }
 
@@ -359,18 +357,11 @@ function limparFiltros() {
 
 .consulta-content {
   flex: 1;
-
-  height: 100vh;
-
+  min-width: 0;
   padding: 28px 32px;
-
-  overflow-y: auto;
-
   display: flex;
   flex-direction: column;
-
   gap: 20px;
-
   background: #dcdfe4;
 }
 

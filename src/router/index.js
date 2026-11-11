@@ -105,7 +105,7 @@ const router = createRouter({
           meta: {
             title: 'Ciclos de Conferência',
             description: 'Gerenciamento dos ciclos patrimoniais',
-            requiresAdmin: true,
+            requiresAdmin: true
           },
         },
 
@@ -114,7 +114,8 @@ const router = createRouter({
           component: UsuariosView,
           meta: {
             title: 'Gerenciamento de Usuários',
-            description: 'Controle de acesso e permissões dos usuários do sistema'
+            description: 'Controle de acesso e permissões dos usuários do sistema',
+            requiresAdmin: true
           }
         },
       ],

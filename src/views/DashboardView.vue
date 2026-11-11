@@ -1,212 +1,364 @@
 <template>
   <div class="dashboard-page">
-    <!-- ================================= -->
-    <!-- CONTEÚDO -->
-    <!-- ================================= -->
-    <main class="dashboard-content">      
-      <!-- Cards de indicadores -->
+    <main class="dashboard-content">
+
+      <div class="dashboard-acoes">
+        <div>
+          <h2>Visão geral do patrimônio</h2>
+          <p>Indicadores atualizados a partir do sistema.</p>
+        </div>
+
+        <button
+          type="button"
+          class="btn-atualizar"
+          :disabled="carregando"
+          @click="carregarDashboard"
+        >
+          {{ carregando ? 'Atualizando...' : 'Atualizar' }}
+        </button>
+      </div>
+
+      <div v-if="erros.length" class="mensagem-erro">
+        <p v-for="erro in erros" :key="erro">{{ erro }}</p>
+      </div>
+
       <section class="stats-grid">
         <div class="stat-card">
-          <span class="stat-icon blue">👥</span>
-
+          <span class="stat-icon blue">📦</span>
           <div class="stat-data">
             <span class="stat-title">Total de Patrimônios</span>
-
-            <strong class="stat-value blue">1.245</strong>
-
-            <small>Total registrados no sistema</small>
+            <strong class="stat-value blue">
+              {{ totalPatrimonios }}
+            </strong>
+            <small>Registros disponíveis</small>
           </div>
         </div>
 
         <div class="stat-card">
           <span class="stat-icon green">✅</span>
-
           <div class="stat-data">
-            <span class="stat-title">Patrimônios Conferidos</span>
-
-            <strong class="stat-value green">1.132</strong>
-
-            <small>Conferidos com sucesso</small>
+            <span class="stat-title">Patrimônios Ativos</span>
+            <strong class="stat-value green">
+              {{ totalAtivos }}
+            </strong>
+            <small>Patrimônios ativos cadastrados</small>
           </div>
         </div>
 
         <div class="stat-card">
           <span class="stat-icon orange">⏰</span>
-
           <div class="stat-data">
-            <span class="stat-title">Patrimônios Pendentes</span>
-
-            <strong class="stat-value orange">113</strong>
-
-            <small>Aguardando conferência</small>
+            <span class="stat-title">Conferências Pendentes</span>
+            <strong class="stat-value orange">
+              {{ totalPendentes }}
+            </strong>
+            <small>{{ totalEmAndamento }} em andamento</small>
           </div>
         </div>
 
         <div class="stat-card">
-          <span class="stat-icon purple">📅</span>
-
+          <span class="stat-icon purple">📋</span>
           <div class="stat-data">
-            <span class="stat-title">Últimos Inventários</span>
-
-            <strong class="stat-value purple">28</strong>
-
-            <small>Inventários realizados</small>
+            <span class="stat-title">Conferências Concluídas</span>
+            <strong class="stat-value purple">
+              {{ totalConcluidas }}
+            </strong>
+            <small>Conferências finalizadas</small>
           </div>
         </div>
       </section>
 
-      <!-- Gráficos -->
       <section class="charts-grid">
         <div class="chart-card">
-          <h2>Patrimônios por Setor</h2>
+          <h2>Patrimônios por Bloco</h2>
 
-          <!-- Protótipo simples: barras com CSS -->
-          <div class="bar-chart">
-            <div class="bar-row">
-              <span class="bar-label">Administração</span>
-
-              <div class="bar-track">
-                <div class="bar-fill" style="width: 100%"></div>
-              </div>
-
-              <span class="bar-value">420</span>
-            </div>
-
-            <div class="bar-row">
-              <span class="bar-label">Biblioteca</span>
+          <div v-if="patrimoniosPorBloco.length" class="bar-chart">
+            <div
+              v-for="bloco in patrimoniosPorBloco"
+              :key="bloco.nome"
+              class="bar-row"
+            >
+              <span class="bar-label" :title="bloco.nome">
+                {{ bloco.nome }}
+              </span>
 
               <div class="bar-track">
-                <div class="bar-fill" style="width: 60%"></div>
+                <div
+                  class="bar-fill"
+                  :style="{ width: `${bloco.percentual}%` }"
+                ></div>
               </div>
 
-              <span class="bar-value">250</span>
-            </div>
-
-            <div class="bar-row">
-              <span class="bar-label">Laboratórios</span>
-
-              <div class="bar-track">
-                <div class="bar-fill" style="width: 76%"></div>
-              </div>
-
-              <span class="bar-value">320</span>
-            </div>
-
-            <div class="bar-row">
-              <span class="bar-label">Salas de Aula</span>
-
-              <div class="bar-track">
-                <div class="bar-fill" style="width: 43%"></div>
-              </div>
-
-              <span class="bar-value">180</span>
-            </div>
-
-            <div class="bar-row">
-              <span class="bar-label">Tecnologia da Informação</span>
-
-              <div class="bar-track">
-                <div class="bar-fill" style="width: 18%"></div>
-              </div>
-
-              <span class="bar-value">75</span>
+              <span class="bar-value">
+                {{ bloco.quantidade }}
+              </span>
             </div>
           </div>
+
+          <p v-else class="estado-vazio">
+            Nenhum patrimônio disponível para o gráfico.
+          </p>
         </div>
 
         <div class="chart-card">
-          <h2>Status dos Patrimônios</h2>
+          <h2>Situação dos Patrimônios</h2>
 
-          <!-- Protótipo simples: rosca com conic-gradient -->
           <div class="donut-layout">
-            <div class="donut">
+            <div class="donut" :style="estiloRosca">
               <div class="donut-center">
-                <strong>65%</strong>
+                <strong>{{ percentualAtivos }}%</strong>
               </div>
             </div>
 
             <ul class="donut-legend">
               <li>
-                <span class="legend-dot" style="background: #2563eb"></span>
-
-                Ativos 65% (809)
+                <span
+                  class="legend-dot"
+                  style="background: #2563eb"
+                ></span>
+                Ativos {{ percentualAtivos }}%
+                ({{ totalAtivos }})
               </li>
 
               <li>
-                <span class="legend-dot" style="background: #16a34a"></span>
-
-                Em Inventário 20% (249)
+                <span
+                  class="legend-dot"
+                  style="background: #dc2626"
+                ></span>
+                Inativos {{ percentualInativos }}%
+                ({{ totalInativos }})
               </li>
 
-              <li>
-                <span class="legend-dot" style="background: #f59e0b"></span>
-
-                Em Manutenção 10% (125)
-              </li>
-
-              <li>
-                <span class="legend-dot" style="background: #dc2626"></span>
-
-                Não Localizados 5% (62)
+              <li v-if="totalNaoInformados > 0">
+                <span
+                  class="legend-dot"
+                  style="background: #94a3b8"
+                ></span>
+                Não informados {{ percentualNaoInformados }}%
+                ({{ totalNaoInformados }})
               </li>
             </ul>
           </div>
         </div>
       </section>
 
-      <!-- Últimos inventários -->
       <section class="table-card">
-        <h2>Últimos Inventários Realizados</h2>
+        <h2>Últimas Conferências</h2>
 
-        <table class="inventory-table">
-          <thead>
-            <tr>
-              <th>Data</th>
+        <div class="tabela-container">
+          <table class="inventory-table">
+            <thead>
+              <tr>
+                <th>Sala</th>
+                <th>Responsável</th>
+                <th>Data</th>
+                <th>Resultado</th>
+              </tr>
+            </thead>
 
-              <th>Setor</th>
+            <tbody>
+              <tr
+                v-for="conferencia in ultimasConferencias"
+                :key="conferencia.id"
+              >
+                <td>
+                  {{ conferencia.salaNome || conferencia.salaId }}
+                </td>
 
-              <th>Responsável</th>
+                <td>
+                  {{ conferencia.responsavelNome || 'Não informado' }}
+                </td>
 
-              <th>Resultado</th>
-            </tr>
-          </thead>
+                <td>
+                  {{
+                    formatarData(
+                      conferencia.encerradaEm ||
+                      conferencia.iniciadaEm
+                    )
+                  }}
+                </td>
 
-          <tbody>
-            <tr>
-              <td>15/05/2026</td>
+                <td>
+                  <span
+                    class="status-badge"
+                    :class="{
+                      concluded: conferencia.status === 'CONCLUIDA',
+                      pending: conferencia.status !== 'CONCLUIDA'
+                    }"
+                  >
+                    {{ formatarStatus(conferencia.status) }}
+                  </span>
+                </td>
+              </tr>
 
-              <td>Biblioteca</td>
-
-              <td>João Silva</td>
-
-              <td><span class="status-badge concluded">Concluído</span></td>
-            </tr>
-
-            <tr>
-              <td>14/05/2026</td>
-
-              <td>Laboratório 2</td>
-
-              <td>Maria Santos</td>
-
-              <td><span class="status-badge concluded">Concluído</span></td>
-            </tr>
-
-            <tr>
-              <td>13/05/2026</td>
-
-              <td>Administração</td>
-
-              <td>Carlos Lima</td>
-
-              <td><span class="status-badge pending">Pendente</span></td>
-            </tr>
-          </tbody>
-        </table>
+              <tr v-if="ultimasConferencias.length === 0">
+                <td colspan="4" class="estado-vazio">
+                  Nenhuma conferência disponível.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </section>
     </main>
   </div>
 </template>
+
+<script setup>
+import { computed, onMounted, ref } from 'vue'
+import { patrimonioService } from '@/services/patrimonioService'
+import { conferenciaService } from '@/services/conferenciaService'
+
+const patrimonios = ref([])
+const conferencias = ref([])
+const carregando = ref(false)
+const erros = ref([])
+
+const totalPatrimonios = computed(() => patrimonios.value.length)
+
+const totalAtivos = computed(() =>
+  patrimonios.value.filter(p => p.ativo === true).length
+)
+
+const totalInativos = computed(() =>
+  patrimonios.value.filter(p => p.ativo === false).length
+)
+
+const totalNaoInformados = computed(() =>
+  patrimonios.value.filter(p => p.ativo == null).length
+)
+
+const totalPendentes = computed(() =>
+  conferencias.value.filter(c => c.status === 'PENDENTE').length
+)
+
+const totalEmAndamento = computed(() =>
+  conferencias.value.filter(c => c.status === 'EM_ANDAMENTO').length
+)
+
+const totalConcluidas = computed(() =>
+  conferencias.value.filter(c => c.status === 'CONCLUIDA').length
+)
+
+const percentualAtivos = computed(() =>
+  totalPatrimonios.value
+    ? Math.round(totalAtivos.value / totalPatrimonios.value * 100)
+    : 0
+)
+
+const percentualInativos = computed(() =>
+  totalPatrimonios.value
+    ? Math.round(totalInativos.value / totalPatrimonios.value * 100)
+    : 0
+)
+
+const percentualNaoInformados = computed(() =>
+  totalPatrimonios.value
+    ? Math.round(totalNaoInformados.value / totalPatrimonios.value * 100)
+    : 0
+)
+
+const estiloRosca = computed(() => {
+  const total = totalPatrimonios.value
+
+  if (!total) {
+    return { background: '#e2e8f0' }
+  }
+
+  const ativos = totalAtivos.value / total * 100
+  const inativos = ativos + totalInativos.value / total * 100
+
+  return {
+    background: `conic-gradient(
+      #2563eb 0% ${ativos}%,
+      #dc2626 ${ativos}% ${inativos}%,
+      #94a3b8 ${inativos}% 100%
+    )`,
+  }
+})
+
+const patrimoniosPorBloco = computed(() => {
+  const contagem = {}
+
+  for (const patrimonio of patrimonios.value) {
+    const bloco = patrimonio.nomeBloco || 'Não informado'
+    contagem[bloco] = (contagem[bloco] || 0) + 1
+  }
+
+  const grupos = Object.entries(contagem)
+    .map(([nome, quantidade]) => ({ nome, quantidade }))
+    .sort((a, b) => b.quantidade - a.quantidade)
+
+  const maior = Math.max(1, ...grupos.map(g => g.quantidade))
+
+  return grupos.map(grupo => ({
+    ...grupo,
+    percentual: grupo.quantidade / maior * 100,
+  }))
+})
+
+const ultimasConferencias = computed(() =>
+  [...conferencias.value]
+    .sort((a, b) => {
+      const dataA = a.encerradaEm || a.iniciadaEm || ''
+      const dataB = b.encerradaEm || b.iniciadaEm || ''
+
+      return dataB.localeCompare(dataA)
+    })
+    .slice(0, 5)
+)
+
+function formatarStatus(status) {
+  const nomes = {
+    PENDENTE: 'Pendente',
+    EM_ANDAMENTO: 'Em andamento',
+    CONCLUIDA: 'Concluída',
+    CANCELADA: 'Cancelada',
+  }
+
+  return nomes[status] || status
+}
+
+function formatarData(data) {
+  if (!data) return 'Não iniciada'
+
+  const dataConvertida = new Date(data)
+
+  return Number.isNaN(dataConvertida.getTime())
+    ? 'Data indisponível'
+    : dataConvertida.toLocaleDateString('pt-BR')
+}
+
+async function carregarDashboard() {
+  carregando.value = true
+  erros.value = []
+
+  const resultados = await Promise.allSettled([
+    patrimonioService.listar(),
+    conferenciaService.listar(),
+  ])
+
+  if (resultados[0].status === 'fulfilled' &&
+      Array.isArray(resultados[0].value)) {
+    patrimonios.value = resultados[0].value
+  } else {
+    patrimonios.value = []
+    erros.value.push('Não foi possível carregar os patrimônios.')
+  }
+
+  if (resultados[1].status === 'fulfilled' &&
+      Array.isArray(resultados[1].value)) {
+    conferencias.value = resultados[1].value
+  } else {
+    conferencias.value = []
+    erros.value.push('Não foi possível carregar as conferências.')
+  }
+
+  carregando.value = false
+}
+
+onMounted(carregarDashboard)
+</script>
 
 <style scoped>
 /* ========================================= */
@@ -214,9 +366,9 @@
 /* ========================================= */
 
 .dashboard-page {
-  display: flex;  width: 100%;
-  height: 100vh;
-  overflow: hidden;
+  display: flex;  
+  width: 100%;
+  min-height: 100%;
 }
 
 /* ========================================= */
@@ -225,18 +377,11 @@
 
 .dashboard-content {
   flex: 1;
-
-  height: 100vh;
-
+  min-width: 0;
   padding: 28px 32px;
-
-  overflow-y: auto;
-
   display: flex;
   flex-direction: column;
-
   gap: 24px;
-
   background: #dcdfe4;
 }
 
@@ -585,6 +730,66 @@
   color: #d97706;
 }
 
+.dashboard-acoes {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.dashboard-acoes h2 {
+  margin: 0 0 6px;
+  color: #152238;
+  font-size: 22px;
+}
+
+.dashboard-acoes p {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.btn-atualizar {
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 8px;
+  background: #2563eb;
+  color: white;
+  cursor: pointer;
+}
+
+.btn-atualizar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.mensagem-erro {
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.mensagem-erro p {
+  margin: 4px 0;
+}
+
+.estado-vazio {
+  color: #64748b;
+  padding: 16px;
+}
+
+.tabela-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.bar-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* ========================================= */
 /* RESPONSIVIDADE */
 /* ========================================= */
@@ -612,4 +817,12 @@
     flex-direction: column;
   }
 }
+
+@media (max-width: 750px) {
+  .dashboard-acoes {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
 </style>

@@ -1,350 +1,438 @@
+
 <template>
   <div class="relatorios-page">
-    <!-- ================================= -->
-    <!-- CONTEÚDO -->
-    <!-- ================================= -->
     <main class="relatorios-content">
-      <!-- Breadcrumb -->
+
       <nav class="breadcrumb">
         <RouterLink to="/dashboard">Dashboard</RouterLink>
-
         <span class="breadcrumb-separator">›</span>
-
         <span class="breadcrumb-current">Relatórios</span>
       </nav>
 
-      <!-- Filtros do relatório -->
       <section class="filtros-card">
         <h2 class="section-title">
           <span class="section-icon">📊</span>
-
-          Filtros do Relatório
+          Relatórios Patrimoniais
         </h2>
 
         <div class="filtros-row">
           <div class="filtro-field">
-            <label for="filtroSetor">Setor</label>
-
-            <select id="filtroSetor" v-model="filtros.setor">
-              <option value="">Todos os setores</option>
-
-              <option v-for="setor in setores" :key="setor">{{ setor }}</option>
+            <label for="sala">Sala</label>
+            <select id="sala" v-model="filtros.sala">
+              <option value="">Todas as salas</option>
+              <option
+                v-for="sala in salas"
+                :key="sala"
+                :value="sala"
+              >
+                {{ sala }}
+              </option>
             </select>
           </div>
 
           <div class="filtro-field">
-            <label for="dataInicial">Data Inicial</label>
-
-            <input id="dataInicial" v-model="filtros.dataInicial" type="date" />
+            <label for="dataInicial">Data inicial</label>
+            <input
+              id="dataInicial"
+              v-model="filtros.dataInicial"
+              type="date"
+            />
           </div>
 
           <div class="filtro-field">
-            <label for="dataFinal">Data Final</label>
-
-            <input id="dataFinal" v-model="filtros.dataFinal" type="date" />
+            <label for="dataFinal">Data final</label>
+            <input
+              id="dataFinal"
+              v-model="filtros.dataFinal"
+              type="date"
+              :min="filtros.dataInicial || undefined"
+            />
           </div>
 
           <div class="filtro-field">
-            <label for="situacao">Situação</label>
-
-            <select id="situacao" v-model="filtros.situacao">
+            <label for="status">Status</label>
+            <select id="status" v-model="filtros.status">
               <option value="">Todos</option>
-
-              <option>Ativos</option>
-
-              <option>Em Inventário</option>
-
-              <option>Em Manutenção</option>
-
-              <option>Não Localizados</option>
+              <option value="PENDENTE">Pendente</option>
+              <option value="EM_ANDAMENTO">Em andamento</option>
+              <option value="CONCLUIDA">Concluída</option>
+              <option value="CANCELADA">Cancelada</option>
             </select>
           </div>
 
-          <button type="button" class="btn btn-primary" @click="gerarPdf">📄 Gerar PDF</button>
+          <button
+            type="button"
+            class="btn btn-outline"
+            @click="limparFiltros"
+          >
+            Limpar
+          </button>
 
-          <button type="button" class="btn btn-outline" @click="visualizar">👁 Visualizar Relatório</button>
+          <button
+            type="button"
+            class="btn btn-primary"
+            :disabled="carregando"
+            @click="carregarRelatorio"
+          >
+            {{ carregando ? 'Carregando...' : 'Atualizar' }}
+          </button>
         </div>
       </section>
 
-      <!-- Cards de indicadores com sparkline -->
-      <section class="stats-grid">
-        <div v-for="stat in stats" :key="stat.titulo" class="stat-card">
-          <div class="stat-topo">
-            <span class="stat-icon" :class="stat.cor">{{ stat.icone }}</span>
+      <div v-if="erros.length" class="mensagem-erro">
+        <p v-for="erro in erros" :key="erro">{{ erro }}</p>
+      </div>
 
+      <section class="stats-grid">
+        <div
+          v-for="stat in stats"
+          :key="stat.titulo"
+          class="stat-card"
+        >
+          <div class="stat-topo">
+            <span class="stat-icon" :class="stat.cor">
+              {{ stat.icone }}
+            </span>
             <div class="stat-data">
               <span class="stat-title">{{ stat.titulo }}</span>
-
-              <strong class="stat-value" :class="stat.cor">{{ stat.valor }}</strong>
-
+              <strong class="stat-value" :class="stat.cor">
+                {{ stat.valor }}
+              </strong>
               <small>{{ stat.subtitulo }}</small>
             </div>
           </div>
-
-          <!-- Sparkline simples com SVG -->
-          <svg class="sparkline" viewBox="0 0 200 24" preserveAspectRatio="none">
-            <polyline :points="stat.sparkline" fill="none" :stroke="stat.corHex" stroke-width="2" />
-          </svg>
         </div>
       </section>
 
-      <!-- Gráficos -->
       <section class="graficos-grid">
-        <!-- Barras verticais (CSS) -->
         <div class="grafico-card">
-          <h2 class="section-title">Patrimônios por Setor</h2>
+          <h2 class="section-title">Patrimônios por Bloco</h2>
 
-          <div class="bar-chart">
-            <div v-for="barra in barrasSetor" :key="barra.label" class="bar-col">
+          <div v-if="barrasBloco.length" class="bar-chart">
+            <div
+              v-for="barra in barrasBloco"
+              :key="barra.label"
+              class="bar-col"
+            >
               <span class="bar-valor">{{ barra.valor }}</span>
-
               <div class="bar-area">
-                <div class="bar-fill" :style="{ height: barra.percentual + '%' }"></div>
+                <div
+                  class="bar-fill"
+                  :style="{ height: `${barra.percentual}%` }"
+                ></div>
               </div>
-
               <span class="bar-label">{{ barra.label }}</span>
             </div>
           </div>
 
-          <div class="bar-eixo">
-            <span>500</span>
-
-            <span>400</span>
-
-            <span>300</span>
-
-            <span>200</span>
-
-            <span>100</span>
-
-            <span>0</span>
-          </div>
+          <p v-else class="estado-vazio">
+            Nenhum patrimônio disponível.
+          </p>
         </div>
 
-        <!-- Rosca (conic-gradient) -->
         <div class="grafico-card">
-          <h2 class="section-title">Distribuição dos Status</h2>
+          <h2 class="section-title">
+            Resultados das Conferências
+          </h2>
 
           <div class="donut-layout">
-            <div class="donut">
+            <div class="donut" :style="estiloRosca">
               <div class="donut-center">
-                <span>1.245</span>
-
-                <small>total</small>
+                <span>{{ totalResultados }}</span>
+                <small>ocorrências</small>
               </div>
             </div>
 
             <ul class="donut-legend">
-              <li v-for="item in donutStatus" :key="item.label">
-                <span class="legend-dot" :style="{ background: item.cor }"></span>
-
+              <li
+                v-for="item in donutStatus"
+                :key="item.label"
+              >
+                <span
+                  class="legend-dot"
+                  :style="{ background: item.cor }"
+                ></span>
                 <span class="legend-label">{{ item.label }}</span>
-
-                <strong>{{ item.percentual }}% ({{ item.quantidade }})</strong>
+                <strong>
+                  {{ item.percentual }}%
+                  ({{ item.quantidade }})
+                </strong>
               </li>
             </ul>
           </div>
         </div>
       </section>
 
-      <!-- Layout: resumo + exportação -->
-      <div class="relatorios-layout">
-        <!-- Tabela resumo -->
-        <section class="tabela-card">
-          <h2 class="section-title">Resumo Patrimonial</h2>
+      <section class="tabela-card">
+        <h2 class="section-title">Resumo das Conferências</h2>
 
+        <div class="tabela-container">
           <table class="resumo-table">
             <thead>
               <tr>
-                <th>Setor</th>
-
-                <th>Quantidade</th>
-
-                <th>Ativos</th>
-
-                <th>Pendentes</th>
-
-                <th>Não Localizados</th>
+                <th>Sala</th>
+                <th>Responsável</th>
+                <th>Status</th>
+                <th>Encontrados</th>
+                <th>Ausentes</th>
+                <th>Divergentes</th>
               </tr>
             </thead>
 
             <tbody>
-              <tr v-for="linha in resumoPatrimonial" :key="linha.setor">
-                <td class="cell-setor">🏢 {{ linha.setor }}</td>
+              <tr
+                v-for="linha in resumoConferencias"
+                :key="linha.id"
+              >
+                <td class="cell-setor">{{ linha.sala }}</td>
+                <td>{{ linha.responsavel }}</td>
+                <td>{{ formatarStatus(linha.status) }}</td>
+                <td>{{ linha.encontrados }}</td>
+                <td>{{ linha.ausentes }}</td>
+                <td>{{ linha.divergentes }}</td>
+              </tr>
 
-                <td>{{ linha.quantidade }}</td>
-
-                <td>{{ linha.ativos }}</td>
-
-                <td>{{ linha.pendentes }}</td>
-
-                <td>{{ linha.naoLocalizados }}</td>
+              <tr v-if="!resumoConferencias.length">
+                <td colspan="6" class="estado-vazio">
+                  Nenhuma conferência encontrada.
+                </td>
               </tr>
             </tbody>
           </table>
+        </div>
 
-          <!-- Paginação estática -->
-          <div class="paginacao">
-            <span class="paginacao-info">Mostrando 1 a 5 de 5 registros</span>
+        <div class="paginacao">
+          <span class="paginacao-info">
+            Mostrando {{ resumoConferencias.length }}
+            conferências
+          </span>
+        </div>
+      </section>
 
-            <div class="paginacao-numeros">
-              <button type="button" class="pag-btn">‹</button>
-
-              <button type="button" class="pag-btn active">1</button>
-
-              <button type="button" class="pag-btn">›</button>
-            </div>
-
-            <select class="pag-por-pagina">
-              <option>5 por página</option>
-
-              <option>10 por página</option>
-            </select>
-          </div>
-        </section>
-
-        <!-- Exportação -->
-        <aside class="exportacao-card">
-          <h2 class="section-title">Exportação</h2>
-
-          <button
-            v-for="opcao in opcoesExportacao"
-            :key="opcao.titulo"
-            type="button"
-            class="export-btn"
-            @click="exportar(opcao.titulo)"
-          >
-            <span class="export-icone" :style="{ background: opcao.corFundo }">{{ opcao.icone }}</span>
-
-            <span class="export-texto">
-              <strong>{{ opcao.titulo }}</strong>
-
-              <small>{{ opcao.descricao }}</small>
-            </span>
-          </button>
-
-          <div class="geracao-info">
-            <span class="geracao-label">Última geração do relatório</span>
-
-            <p class="geracao-data">📅 15/05/2026 às 14:35 <span class="status-badge badge-green">Concluído</span></p>
-
-            <span class="geracao-label">Gerado por</span>
-
-            <p class="geracao-user">👤 Administrador<br /><small>admin@sicpat-rfid</small></p>
-
-            <div class="geracao-sucesso">
-              ✅ <strong>Relatório gerado com sucesso!</strong>
-
-              <small>Todas as informações estão atualizadas.</small>
-            </div>
-          </div>
-        </aside>
-      </div>
+      <p class="observacao-relatorio">
+        Os resultados representam ocorrências das conferências
+        selecionadas, não necessariamente patrimônios únicos.
+        O gráfico de patrimônios por bloco apresenta o cadastro
+        acessível ao usuário e não é afetado pelos filtros de
+        conferência.
+      </p>
     </main>
   </div>
 </template>
 
 <script setup>
-import { reactive } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
+import { patrimonioService } from '@/services/patrimonioService'
+import { conferenciaService } from '@/services/conferenciaService'
 
-const setores = [
-  'Administração',
-  'Biblioteca',
-  'Laboratórios',
-  'Tecnologia da Informação',
-  'Salas de Aula',
-]
+const patrimonios = ref([])
+const conferencias = ref([])
+const carregando = ref(false)
+const erros = ref([])
 
 const filtros = reactive({
-  setor: '',
-
-  dataInicial: '2026-05-01',
-
-  dataFinal: '2026-05-15',
-
-  situacao: '',
+  sala: '',
+  dataInicial: '',
+  dataFinal: '',
+  status: '',
 })
 
-const stats = [
+const salas = computed(() =>
+  [...new Set(
+    conferencias.value.map(c => c.salaNome || c.salaId)
+  )].sort()
+)
+
+const conferenciasFiltradas = computed(() => {
+  return conferencias.value.filter(c => {
+    const sala = c.salaNome || c.salaId
+    const data = (
+      c.encerradaEm || c.iniciadaEm || ''
+    ).slice(0, 10)
+
+    return (
+      (!filtros.sala || sala === filtros.sala) &&
+      (!filtros.status || c.status === filtros.status) &&
+      (!filtros.dataInicial ||
+        (data && data >= filtros.dataInicial)) &&
+      (!filtros.dataFinal ||
+        (data && data <= filtros.dataFinal))
+    )
+  })
+})
+
+const totais = computed(() =>
+  conferenciasFiltradas.value.reduce(
+    (acc, c) => {
+      acc.esperados += c.totalEsperados || 0
+      acc.encontrados += c.totalEncontrados || 0
+      acc.ausentes += c.totalAusentes || 0
+      acc.divergentes += c.totalDivergentes || 0
+      return acc
+    },
+    {
+      esperados: 0,
+      encontrados: 0,
+      ausentes: 0,
+      divergentes: 0,
+    }
+  )
+)
+
+const stats = computed(() => [
   {
-    titulo: 'Total de Patrimônios',
-    valor: '1.245',
-    subtitulo: 'Total registrados no sistema',
-    icone: '🏢',
+    titulo: 'Conferências',
+    valor: conferenciasFiltradas.value.length,
+    subtitulo: 'Conferências selecionadas',
+    icone: '📋',
     cor: 'blue',
-    corHex: '#2563eb',
-    sparkline: '0,18 33,14 66,16 100,12 133,15 166,10 200,12',
   },
   {
-    titulo: 'Patrimônios Ativos',
-    valor: '1.132',
-    subtitulo: 'Patrimônios ativos',
+    titulo: 'Encontrados',
+    valor: totais.value.encontrados,
+    subtitulo: 'Ocorrências registradas',
     icone: '✅',
     cor: 'green',
-    corHex: '#16a34a',
-    sparkline: '0,20 33,16 66,18 100,14 133,16 166,12 200,10',
   },
   {
-    titulo: 'Em Inventário',
-    valor: '87',
-    subtitulo: 'Aguardando conferência',
-    icone: '📋',
-    cor: 'cyan',
-    corHex: '#0891b2',
-    sparkline: '0,10 33,14 66,12 100,16 133,14 166,18 200,15',
-  },
-  {
-    titulo: 'Não Localizados',
-    valor: '26',
-    subtitulo: 'Patrimônios não localizados',
+    titulo: 'Divergentes',
+    valor: totais.value.divergentes,
+    subtitulo: 'Ocorrências divergentes',
     icone: '⚠️',
-    cor: 'red',
-    corHex: '#dc2626',
-    sparkline: '0,16 33,18 66,14 100,17 133,13 166,16 200,14',
+    cor: 'cyan',
   },
-]
+  {
+    titulo: 'Ausentes',
+    valor: totais.value.ausentes,
+    subtitulo: 'Ocorrências não encontradas',
+    icone: '🔍',
+    cor: 'red',
+  },
+])
 
-const barrasSetor = [
-  { label: 'Administração', valor: 214, percentual: 43 },
-  { label: 'Biblioteca', valor: 152, percentual: 30 },
-  { label: 'Laboratórios', valor: 398, percentual: 80 },
-  { label: 'Tecnologia da Informação', valor: 281, percentual: 56 },
-  { label: 'Salas de Aula', valor: 200, percentual: 40 },
-]
+const barrasBloco = computed(() => {
+  const contagem = {}
 
-const donutStatus = [
-  { label: 'Ativos', percentual: 61, quantidade: 1132, cor: '#2563eb' },
-  { label: 'Inventariados', percentual: 20, quantidade: 249, cor: '#16a34a' },
-  { label: 'Em Manutenção', percentual: 14, quantidade: 178, cor: '#f59e0b' },
-  { label: 'Não Localizados', percentual: 5, quantidade: 62, cor: '#dc2626' },
-]
+  for (const patrimonio of patrimonios.value) {
+    const nome = patrimonio.nomeBloco || 'Não informado'
+    contagem[nome] = (contagem[nome] || 0) + 1
+  }
 
-const resumoPatrimonial = [
-  { setor: 'Administração', quantidade: 214, ativos: 205, pendentes: 7, naoLocalizados: 2 },
-  { setor: 'Biblioteca', quantidade: 152, ativos: 147, pendentes: 3, naoLocalizados: 2 },
-  { setor: 'Laboratórios', quantidade: 398, ativos: 374, pendentes: 18, naoLocalizados: 6 },
-  { setor: 'Tecnologia da Informação', quantidade: 281, ativos: 270, pendentes: 7, naoLocalizados: 4 },
-  { setor: 'Salas de Aula', quantidade: 200, ativos: 196, pendentes: 2, naoLocalizados: 2 },
-]
+  const grupos = Object.entries(contagem)
+    .map(([label, valor]) => ({ label, valor }))
+    .sort((a, b) => b.valor - a.valor)
 
-const opcoesExportacao = [
-  { titulo: 'Exportar PDF', descricao: 'Relatório completo', icone: '📄', corFundo: 'rgba(220, 38, 38, 0.12)' },
-  { titulo: 'Exportar Excel', descricao: 'Planilha detalhada', icone: '📊', corFundo: 'rgba(22, 163, 74, 0.12)' },
-  { titulo: 'Exportar CSV', descricao: 'Dados brutos', icone: '📋', corFundo: 'rgba(245, 158, 11, 0.14)' },
-]
+  const maximo = Math.max(1, ...grupos.map(g => g.valor))
 
-function gerarPdf() {
-  // Protótipo: apenas simula a geração
-  alert('Relatório PDF gerado (protótipo)!')
+  return grupos.map(g => ({
+    ...g,
+    percentual: (g.valor / maximo) * 100,
+  }))
+})
+
+const donutStatus = computed(() => {
+  const grupos = [
+    { label: 'Encontrados', quantidade: totais.value.encontrados, cor: '#16a34a' },
+    { label: 'Ausentes', quantidade: totais.value.ausentes, cor: '#dc2626' },
+    { label: 'Divergentes', quantidade: totais.value.divergentes, cor: '#f59e0b' },
+  ]
+
+  const total = grupos.reduce((soma, item) => soma + item.quantidade, 0)
+
+  return grupos.map(item => ({
+    ...item,
+    percentual: total
+      ? Math.round(item.quantidade / total * 100)
+      : 0,
+  }))
+})
+
+const totalResultados = computed(() =>
+  totais.value.encontrados +
+  totais.value.ausentes +
+  totais.value.divergentes
+)
+
+const estiloRosca = computed(() => {
+  if (!totalResultados.value) {
+    return { background: '#e2e8f0' }
+  }
+
+  const encontrados =
+    totais.value.encontrados / totalResultados.value * 100
+
+  const ausentes =
+    encontrados + totais.value.ausentes / totalResultados.value * 100
+
+  return {
+    background: `conic-gradient(
+      #16a34a 0% ${encontrados}%,
+      #dc2626 ${encontrados}% ${ausentes}%,
+      #f59e0b ${ausentes}% 100%
+    )`,
+  }
+})
+
+const resumoConferencias = computed(() =>
+  conferenciasFiltradas.value.map(c => ({
+    id: c.id,
+    sala: c.salaNome || c.salaId,
+    responsavel: c.responsavelNome || 'Não informado',
+    status: c.status,
+    encontrados: c.totalEncontrados || 0,
+    ausentes: c.totalAusentes || 0,
+    divergentes: c.totalDivergentes || 0,
+  }))
+)
+
+function formatarStatus(status) {
+  return {
+    PENDENTE: 'Pendente',
+    EM_ANDAMENTO: 'Em andamento',
+    CONCLUIDA: 'Concluída',
+    CANCELADA: 'Cancelada',
+  }[status] || status
 }
 
-function visualizar() {
-  alert('Visualização do relatório (protótipo)!')
+function limparFiltros() {
+  Object.assign(filtros, {
+    sala: '',
+    dataInicial: '',
+    dataFinal: '',
+    status: '',
+  })
 }
 
-function exportar(tipo) {
-  alert(`Exportação ${tipo} (protótipo)!`)
+async function carregarRelatorio() {
+  carregando.value = true
+  erros.value = []
+
+  const [resultadoPatrimonios, resultadoConferencias] =
+    await Promise.allSettled([
+      patrimonioService.listar(),
+      conferenciaService.listar(),
+    ])
+
+  if (resultadoPatrimonios.status === 'fulfilled' &&
+      Array.isArray(resultadoPatrimonios.value)) {
+    patrimonios.value = resultadoPatrimonios.value
+  } else {
+    patrimonios.value = []
+    erros.value.push('Falha ao carregar patrimônios.')
+  }
+
+  if (resultadoConferencias.status === 'fulfilled' &&
+      Array.isArray(resultadoConferencias.value)) {
+    conferencias.value = resultadoConferencias.value
+  } else {
+    conferencias.value = []
+    erros.value.push('Falha ao carregar conferências.')
+  }
+
+  carregando.value = false
 }
+
+onMounted(carregarRelatorio)
 </script>
 
 <style scoped>
@@ -1165,6 +1253,37 @@ function exportar(tipo) {
   background: #f8fafc;
 }
 
+.filtros-row {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) auto auto;
+}
+
+.stat-value.cyan {
+  color: #0891b2;
+}
+
+.tabela-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.mensagem-erro {
+  padding: 14px 18px;
+  color: #b91c1c;
+  background: #fef2f2;
+  border-radius: 10px;
+}
+
+.estado-vazio {
+  padding: 18px;
+  color: #64748b;
+}
+
+.observacao-relatorio {
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
 /* ========================================= */
 /* RESPONSIVIDADE */
 /* ========================================= */
@@ -1205,4 +1324,17 @@ function exportar(tipo) {
     flex-direction: column;
   }
 }
+
+@media (max-width: 1100px) {
+  .filtros-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 650px) {
+  .filtros-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 </style>

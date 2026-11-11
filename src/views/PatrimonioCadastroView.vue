@@ -10,7 +10,7 @@
 
         <span class="breadcrumb-separator">›</span>
 
-        <span>Patrimônios</span>
+        <RouterLink to="/patrimonios">Patrimônios</RouterLink>
 
         <span class="breadcrumb-separator">›</span>
 
@@ -28,7 +28,6 @@
 
             Dados do Patrimônio
 
-            <span v-if="ehEdicao" class="modo-edicao-badge">✏️ Editando tombo {{ editandoTombo }}</span>
           </h2>
 
           <!-- Erros de validação -->
@@ -48,7 +47,7 @@
               <div class="field">
                 <label for="tombamento">Número do Tombamento <em>*</em></label>
 
-                <input id="tombamento" v-model="patrimonio.tombamento" type="text" placeholder="Ex: 001245/2026" />
+                <input id="tombamento" v-model="patrimonio.numeroTombo" type="text" placeholder="Ex: 001245/2026" />
               </div>
 
               <div class="field">
@@ -58,67 +57,23 @@
               </div>
 
               <div class="field">
-                <label for="categoria">Categoria <em>*</em></label>
+                <label for="sala">Sala <em>*</em></label>
 
-                <select id="categoria" v-model="patrimonio.categoria">
-                  <option value="" disabled>Selecione uma categoria</option>
+                <select id="sala" v-model="patrimonio.salaId" required :disabled="carregandoSalas">
+                  <option value="" disabled>
+                    {{ carregandoSalas ? 'Carregando salas...' : 'Selecione uma sala' }}
+                  </option>
 
-                  <option>Equipamento de Informática</option>
+                  <option v-for="sala in salas" :key="sala.id" :value="sala.id">
+                    {{ sala.nome }}
+                  </option>
 
-                  <option>Mobiliário</option>
-
-                  <option>Equipamento de Laboratório</option>
-
-                  <option>Veículo</option>
-
-                  <option>Outro</option>
-                </select>
-              </div>
-
-              <div class="field">
-                <label for="setor">Setor Responsável <em>*</em></label>
-
-                <select id="setor" v-model="patrimonio.setor">
-                  <option value="" disabled>Selecione um setor</option>
-
-                  <option>Administração</option>
-
-                  <option>Biblioteca</option>
-
-                  <option>Laboratório de Redes</option>
-
-                  <option>Laboratório 2</option>
-
-                  <option>Salas de Aula</option>
-                </select>
-              </div>
-
-              <div class="field">
-                <label for="localizacao">Localização <em>*</em></label>
-
-                <select id="localizacao" v-model="patrimonio.localizacao">
-                  <option value="" disabled>Selecione uma localização</option>
-
-                  <option>Bloco A - Sala 01</option>
-
-                  <option>Bloco B - Sala 12</option>
-
-                  <option>Bloco C - Laboratório</option>
-
-                  <option>Biblioteca Central</option>
                 </select>
               </div>
             </section>
-
             <!-- Coluna 2: informações complementares -->
             <section class="form-column">
               <h3 class="column-title">Informações Complementares</h3>
-
-              <div class="field">
-                <label for="tagRfid">Tag RFID <em>*</em></label>
-
-                <input id="tagRfid" v-model="patrimonio.tagRfid" type="text" placeholder="Ex: RFID-8F7A-23B1" />
-              </div>
 
               <div class="field">
                 <label for="dataAquisicao">Data de Aquisição <em>*</em></label>
@@ -127,15 +82,9 @@
               </div>
 
               <div class="field">
-                <label for="fabricante">Fabricante</label>
-
-                <input id="fabricante" v-model="patrimonio.fabricante" type="text" placeholder="Ex: Dell Technologies" />
-              </div>
-
-              <div class="field">
                 <label for="valor">Valor de Aquisição (R$) <em>*</em></label>
 
-                <input id="valor" v-model="patrimonio.valor" type="number" min="0" step="0.01" placeholder="0,00" />
+                <input id="valor" v-model="patrimonio.valorAquisicao" type="number" min="0" step="0.01" placeholder="0,00" />
               </div>
 
               <div class="field">
@@ -143,7 +92,7 @@
 
                 <div class="estado-options">
                   <label v-for="estado in estados" :key="estado" class="estado-option">
-                    <input v-model="patrimonio.estado" type="radio" name="estado" :value="estado" />
+                    <input v-model="patrimonio.estadoConservacao" type="radio" name="estado" :value="estado" />
 
                     <span>{{ estado }}</span>
                   </label>
@@ -151,20 +100,6 @@
               </div>
             </section>
           </div>
-
-          <!-- Associação RFID (protótipo estático) -->
-          <section class="rfid-card">
-            <div class="rfid-info">
-              <h4>Associação RFID</h4>
-
-              <p>
-                A tag <strong>{{ patrimonio.tagRfid || 'RFID-••••' }}</strong> será vinculada ao
-                patrimônio após o cadastro.
-              </p>
-            </div>
-
-            <span class="rfid-badge">🔵 Tag Vinculada</span>
-          </section>
 
           <!-- Ações -->
           <div class="form-actions">
@@ -193,7 +128,7 @@
           <div class="resumo-preview">
             <div class="preview-image">🖥️</div>
 
-            <span class="preview-id">{{ patrimonio.tombamento || 'ID: —' }}</span>
+            <span class="preview-id">{{ patrimonio.numeroTombo || 'ID: —' }}</span>
           </div>
 
           <ul class="resumo-list">
@@ -204,21 +139,9 @@
             </li>
 
             <li>
-              <span class="resumo-label">Categoria</span>
+              <span class="resumo-label">Sala</span>
 
-              <strong>{{ patrimonio.categoria || '—' }}</strong>
-            </li>
-
-            <li>
-              <span class="resumo-label">Setor</span>
-
-              <strong>{{ patrimonio.setor || '—' }}</strong>
-            </li>
-
-            <li>
-              <span class="resumo-label">Localização</span>
-
-              <strong>{{ patrimonio.localizacao || '—' }}</strong>
+              <strong>{{salaSelecionada?.nome || '—' }}</strong>
             </li>
 
             <li>
@@ -230,245 +153,146 @@
             <li>
               <span class="resumo-label">Valor</span>
 
-              <strong>{{ valorFormatado }}</strong>
+              <strong>{{ patrimonio.valorAquisicao }}</strong>
             </li>
 
             <li>
-              <span class="resumo-label">Estado</span>
+              <span class="resumo-label">Estado de Conservação</span>
 
-              <strong>{{ patrimonio.estado || '—' }}</strong>
+              <strong>{{ patrimonio.estadoConservacao || '—' }}</strong>
             </li>
 
-            <li>
-              <span class="resumo-label">Fabricante</span>
-
-              <strong>{{ patrimonio.fabricante || '—' }}</strong>
-            </li>
           </ul>
-
-          <div class="resumo-status">
-            <span class="resumo-status-label">Status RFID</span>
-
-            <strong class="resumo-status-value">{{ patrimonio.tagRfid ? 'Ativo' : 'Aguardando' }}</strong>
-
-            <small>{{ patrimonio.tagRfid ? 'Tag vinculada ao patrimônio' : 'Informe a Tag RFID' }}</small>
-          </div>
         </aside>
       </div>
     </main>
   </div>
 </template>
 
+
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
-
-import { useRoute, useRouter } from 'vue-router'
-
-import { usePatrimoniosStore } from '@/stores/patrimonios'
+import { useRouter } from 'vue-router'
+import { patrimonioService } from '@/services/patrimonioService'
+import { requisicao } from '@/services/conferenciaService'
 
 const router = useRouter()
 
-const route = useRoute()
-
-const patrimoniosStore = usePatrimoniosStore()
+const salas = ref([])
+const carregandoSalas = ref(false)
+const salvando = ref(false)
+const erros = ref([])
 
 const estados = ['Novo', 'Bom', 'Regular', 'Em Manutenção']
 
-const patrimonio = reactive({
-  tombamento: '',
-
+const formularioInicial = () => ({
+  numeroTombo: '',
   descricao: '',
-
-  categoria: '',
-
-  setor: '',
-
-  localizacao: '',
-
-  tagRfid: '',
-
+  salaId: '',
   dataAquisicao: '',
-
-  fabricante: '',
-
-  valor: '',
-
-  estado: 'Novo',
+  valorAquisicao: '',
+  estadoConservacao: 'Novo',
 })
 
-// Campos obrigatórios, na ordem de exibição do formulário
-const camposObrigatorios = {
-  tombamento: 'Número do Tombamento',
-  descricao: 'Descrição do Bem',
-  categoria: 'Categoria',
-  setor: 'Setor Responsável',
-  localizacao: 'Localização',
-  tagRfid: 'Tag RFID',
-  dataAquisicao: 'Data de Aquisição',
-  valor: 'Valor de Aquisição (R$)',
-}
-
-const erros = ref([])
-
-const salvando = ref(false)
-
-// Tombo original em modo edição; vazio = modo novo cadastro
-const editandoTombo = ref('')
-
-const ehEdicao = computed(() => editandoTombo.value !== '')
+const patrimonio = reactive(formularioInicial())
 
 const valorFormatado = computed(() => {
-  if (!patrimonio.valor) return '—'
+  if (patrimonio.valorAquisicao === '') return '—'
 
-  return Number(patrimonio.valor).toLocaleString('pt-BR', {
+  return Number(patrimonio.valorAquisicao).toLocaleString('pt-BR', {
     style: 'currency',
-
     currency: 'BRL',
   })
 })
 
-// Converte DD/MM/AAAA (padrão da tabela) para AAAA-MM-DD (input date)
-function converterDataParaInput(data) {
-  if (!data || data.length !== 10 || !data.includes('/')) return ''
+const salaSelecionada = computed(() =>
+  salas.value.find(sala => sala.id === patrimonio.salaId)
+)
 
-  return `${data.slice(6, 10)}-${data.slice(3, 5)}-${data.slice(0, 2)}`
+async function carregarSalas() {
+  carregandoSalas.value = true
+
+  try {
+    const dados = await requisicao('/api/salas')
+
+    if (!Array.isArray(dados)) {
+      throw new Error('Resposta inválida ao consultar as salas.')
+    }
+
+    salas.value = dados
+  } catch (erro) {
+    erros.value = [
+      erro.message || 'Não foi possível carregar as salas.'
+    ]
+  } finally {
+    carregandoSalas.value = false
+  }
 }
 
-// Carrega o patrimônio para edição quando a URL contém ?tombo=...
-onMounted(() => {
-  const tombo = route.query.tombo
-
-  if (!tombo) return
-
-  const item = patrimoniosStore.buscarPorTombo(String(tombo))
-
-  if (!item) return
-
-  editandoTombo.value = item.tombo
-
-  Object.assign(patrimonio, {
-    tombamento: item.tombo,
-
-    descricao: item.descricao,
-
-    categoria: item.categoria,
-
-    setor: item.setor,
-
-    localizacao: item.localizacao,
-
-    tagRfid: item.tagRfid === '—' ? '' : item.tagRfid,
-
-    dataAquisicao: converterDataParaInput(item.dataAquisicao),
-
-    fabricante: item.fabricante === '—' ? '' : item.fabricante,
-
-    valor: item.valor != null ? String(item.valor) : '',
-
-    estado: item.estado || 'Novo',
-  })
-})
-
 function limpar() {
-  Object.assign(patrimonio, {
-    tombamento: '',
-
-    descricao: '',
-
-    categoria: '',
-
-    setor: '',
-
-    localizacao: '',
-
-    tagRfid: '',
-
-    dataAquisicao: '',
-    fabricante: '',
-
-    valor: '',
-
-    estado: 'Novo',
-  })
-
+  Object.assign(patrimonio, formularioInicial())
   erros.value = []
 }
 
-function salvar() {
-  // 1. Valida os campos obrigatórios
-  erros.value = Object.entries(camposObrigatorios)
-    .filter(([campo]) => !String(patrimonio[campo]).trim())
-    .map(([, rotulo]) => rotulo)
+async function salvar() {
+  if (salvando.value) return
 
-  if (erros.value.length > 0) {
-    return
+  erros.value = []
+
+  if (!patrimonio.numeroTombo.trim()) {
+    erros.value.push('Informe o número do tombamento.')
   }
 
-  // 2. Impede tombamento e tag RFID duplicados (ignorando o próprio item em edição)
-  const tomboDuplicado = patrimoniosStore.patrimonios.some(
-    (p) => p.tombo === patrimonio.tombamento.trim() && p.tombo !== editandoTombo.value,
-  )
-
-  const tagDuplicada = patrimoniosStore.patrimonios.some(
-    (p) => p.tagRfid === patrimonio.tagRfid.trim() && p.tombo !== editandoTombo.value,
-  )
-
-  if (tomboDuplicado) {
-    erros.value = [`O número de tombamento "${patrimonio.tombamento}" já está cadastrado.`]
-
-    return
+  if (!patrimonio.descricao.trim()) {
+    erros.value.push('Informe a descrição.')
   }
 
-  if (tagDuplicada) {
-    erros.value = [`A Tag RFID "${patrimonio.tagRfid}" já está vinculada a outro patrimônio.`]
-
-    return
+  if (!patrimonio.salaId) {
+    erros.value.push('Selecione uma sala.')
   }
 
-  // 3. Salva no store (protótipo em memória)
+  if (!patrimonio.dataAquisicao) {
+    erros.value.push('Informe a data de aquisição.')
+  }
+
+  if (
+    patrimonio.valorAquisicao === '' ||
+    Number(patrimonio.valorAquisicao) < 0
+  ) {
+    erros.value.push('Informe um valor de aquisição válido.')
+  }
+
+  if (erros.value.length) return
+
   salvando.value = true
 
-  setTimeout(() => {
-    const dados = {
-      tombo: patrimonio.tombamento.trim(),
-
+  try {
+    await patrimonioService.criar({
+      numeroTombo: patrimonio.numeroTombo.trim(),
       descricao: patrimonio.descricao.trim(),
-
-      categoria: patrimonio.categoria,
-
-      setor: patrimonio.setor,
-
-      localizacao: patrimonio.localizacao,
-
-      tagRfid: patrimonio.tagRfid.trim(),
-
-      fabricante: patrimonio.fabricante.trim(),
-
-      valor: patrimonio.valor ? Number(patrimonio.valor) : null,
-
-      estado: patrimonio.estado,
-
+      valorAquisicao: Number(patrimonio.valorAquisicao),
       dataAquisicao: patrimonio.dataAquisicao,
-    }
+      estadoConservacao: patrimonio.estadoConservacao,
+      salaId: patrimonio.salaId,
+      fotoUrl: null,
+      tagNfcId: null,
+      ativo: true,
+    })
 
-    if (ehEdicao.value) {
-      patrimoniosStore.atualizar(editandoTombo.value, dados)
-
-      salvando.value = false
-
-      alert(`Patrimônio "${dados.descricao}" atualizado com sucesso!`)
-    } else {
-      patrimoniosStore.adicionar(dados)
-
-      salvando.value = false
-
-      alert(`Patrimônio "${dados.descricao}" cadastrado com sucesso!`)
-    }
-
+    alert('Patrimônio cadastrado com sucesso!')
     router.push('/patrimonios')
-  }, 400)
+  } catch (erro) {
+    erros.value = [
+      erro.message || 'Não foi possível cadastrar o patrimônio.'
+    ]
+  } finally {
+    salvando.value = false
+  }
 }
+
+onMounted(carregarSalas)
 </script>
+
 
 <style scoped>
 /* ========================================= */
@@ -477,11 +301,7 @@ function salvar() {
 
 .cadastro-page {
   display: flex;
-
   width: 100%;
-
-  height: 100vh;
-
   overflow: hidden;
 }
 
@@ -491,18 +311,11 @@ function salvar() {
 
 .cadastro-content {
   flex: 1;
-
-  height: 100vh;
-
+  min-width: 0;
   padding: 28px 32px;
-
-  overflow-y: auto;
-
   display: flex;
   flex-direction: column;
-
   gap: 20px;
-
   background: #dcdfe4;
 }
 
